@@ -18,8 +18,30 @@ class Translator:
     j = json.dumps(item)
     print(j)
 
+    """
+    # jq로 데이터를 업데이트까지 해주면 좋은데, 아직은 그게 안되는 듯.
+    # jq는 jq 유틸리티의 bind api라서 성능도 그닥일듯..
+
     for index, jq_pattern in enumerate(jq_patterns):
-      res = jq.all(jq_pattern, item)
+      res = iter(jq.all(jq_pattern, item))
       ColorPrint.print_pass(f'CONTENTS OF JQ_PATTERN #{index}({jq_pattern}) [')
-      print(f'{res}')
+      while(True):
+        r = next(res, None)
+        if r == None:
+          break
+        print(f'{r}')
       ColorPrint.print_pass(f']')
+
+      r = jq.compile(f'{jq_pattern}').input_value(item).first()
+      print('\n\n')
+      print(r)
+      print('\n\n')
+
+      translated = []
+      for index, s in enumerate(res):
+        translated.append(f'##{s}##')
+      ColorPrint.print_pass(f'TARGET [')
+      print(f'{translated}')
+      ColorPrint.print_pass(f']')
+    """
+
