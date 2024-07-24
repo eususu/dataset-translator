@@ -14,6 +14,9 @@ class DataLoader:
     for data in self._dataset:
       print(f'DATA SPLIT({data}) = {len(self._dataset[data])}')
 
+  def items(self)->DatasetDict:
+    return self._dataset
+
   def item(self, index:int=-1):
     for dt in self._dataset:
       return self._dataset[dt][0]

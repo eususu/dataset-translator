@@ -6,6 +6,7 @@ name = "pypi"
 [packages]
 datasets = "*"
 jq = "*"
+python-dotenv = "*"
 
 [dev-packages]
 

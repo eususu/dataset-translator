@@ -1,4 +1,5 @@
-from typing import List
+from typing import Callable, List
+from transdata.deepl import DeepL, Lang
 from transdata.color_print import ColorPrint
 from transdata.data_loader import DataLoader
 
@@ -8,16 +9,81 @@ import json
 
 class Translator:
   data_loader=None
+  test_mode=False
+  deepl:DeepL
+  extractDict:Callable[[dict],List[str]]=None
+  mergeDict:Callable[[dict, List[str]], None]=None
+  output_path:str
+  split:str
 
-  def __init__(self, path:str, jq_patterns:List[str]):
+  def __init__(
+    self,
+    path:str,
+    output_path:str,
+    extractDict:Callable[[dict], List[str]],
+    mergeDict:Callable[[dict, List[str]], None],
+    split:str=None,
+    test_mode=False
+    ):
 
-    #self.data_loader = DataLoader(path)
-    #item = self.data_loader.item()
-    item = {'inputs': [[{'content': 'butcher shop phone number', 'name': 'question', 'type': 'user_input'}], [{'content': 'passage 1:Butcher Shop - Hayward 826 B Street, Hayward CA 94541 Phone Number: (510) 889-8690\n\npassage 2:Butcher Shop - Lakefield 212 Main Street, Lakefield MN 56150 Phone Number: (507) 662-6281\n\npassage 3:Some More Phone Numbers Related To The Butcher Shop The Local Butcher Shop phone number : (510) 845-6328 Boones Butcher Shop phone number : (502) 348-3668 Ye Ole Butcher Shop phone number : (972) 423-1848 J Ms Butcher Shop phone number : (865) 483-9228\n\n', 'name': 'passages', 'type': 'context'}]], 'output': {'content': "The phone numbers for several butcher shops are mentioned in the passages. Butcher Shop in Hayward can be reached at (510) 889-8690. Butcher Shop in Lakefield can be contacted at (507) 662-6281. The Local Butcher Shop's number is (510) 845-6328, Boones Butcher Shop can be reached at (502) 348-3668, Ye Ole Butcher Shop's number is (972) 423-1848, and J Ms Butcher Shop's phone number is (865) 483-9228.", 'name': 'answer', 'type': 'response'}, 'score': 0}
+    self.output_path = output_path
+    self.data_loader = DataLoader(path)
+    self.test_mode = test_mode
+    self.deepl = DeepL(Lang.EN, Lang.KO)
+    self.extractDict = extractDict
+    self.mergeDict = mergeDict
+    self.split = split
 
-    j = json.dumps(item)
-    print(j)
+  def _single_translate(self, item:dict)->None:
+    messages = self.extractDict(item)
 
+    translated = []
+    if not self.test_mode:
+      translated = self.deepl.translate(messages)
+    else:
+      for message in messages:
+        translated.append(f'### TRANSLATED DATA #{message} ###')
+
+    self.mergeDict(item, translated)
+
+  def translate(self):
+    datasets = self.data_loader.items()
+
+    for split, dataset in datasets.items():
+      if self.split and (self.split != split):
+        ColorPrint.print_warn(f'pass this split({split}) target split({self.split}) ')
+        continue
+        
+      ColorPrint.print_pass(f'Dataset: {split}, len: {len(dataset)}')
+      output_lines = []
+      output_name = f'{split}-{self.output_path}'
+      begin_index = 0
+      write_mode = "new"
+      with open(output_name, 'r') as fp:
+        lines = fp.readlines()
+        begin_index = len(lines)
+        write_mode = "continue"
+      
+      ColorPrint.print_bold(f'Output file is ({output_name})')
+      ColorPrint.print_bold(f'Output mode is ({write_mode})')
+      for item_index, item in enumerate(dataset):
+        if item_index < begin_index: # pass already translated data
+          continue
+
+        self._single_translate(item)
+        output_lines.append(json.dumps(item, ensure_ascii=False))
+
+        if item_index >= 2+begin_index:
+          break# for test
+      
+      if self.test_mode:
+        ColorPrint.print_warn('In test_mode, does not append output.')
+        continue
+
+      with open(output_name, 'a') as fp:
+        fp.writelines(line + '\n' for line in output_lines)
+
+      
     """
     # jq로 데이터를 업데이트까지 해주면 좋은데, 아직은 그게 안되는 듯.
     # jq는 jq 유틸리티의 bind api라서 성능도 그닥일듯..
