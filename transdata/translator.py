@@ -15,6 +15,7 @@ class Translator:
   mergeDict:Callable[[dict, List[str]], None]=None
   output_path:str
   split:str
+  max_iterations:int
 
   def __init__(
     self,
@@ -23,16 +24,19 @@ class Translator:
     extractDict:Callable[[dict], List[str]],
     mergeDict:Callable[[dict, List[str]], None],
     split:str=None,
+    max_iterations:int=10,
     test_mode=False
     ):
 
-    self.output_path = output_path
     self.data_loader = DataLoader(path)
-    self.test_mode = test_mode
     self.deepl = DeepL(Lang.EN, Lang.KO)
+
+    self.output_path = output_path
     self.extractDict = extractDict
     self.mergeDict = mergeDict
     self.split = split
+    self.max_iterations = max_iterations
+    self.test_mode = test_mode
 
   def _single_translate(self, item:dict)->None:
     messages = self.extractDict(item)
@@ -64,17 +68,16 @@ class Translator:
         begin_index = len(lines)
         write_mode = "continue"
       
-      ColorPrint.print_bold(f'Output file is ({output_name})')
-      ColorPrint.print_bold(f'Output mode is ({write_mode})')
+      ColorPrint.print_bold(f'OUTPUT file({output_name}) mode({write_mode}) index({begin_index} max_iterations({self.max_iterations}))')
       for item_index, item in enumerate(dataset):
+        if item_index >= self.max_iterations + begin_index:
+          break# for test
+
         if item_index < begin_index: # pass already translated data
           continue
 
         self._single_translate(item)
         output_lines.append(json.dumps(item, ensure_ascii=False))
-
-        if item_index >= 2+begin_index:
-          break# for test
       
       if self.test_mode:
         ColorPrint.print_warn('In test_mode, does not append output.')
