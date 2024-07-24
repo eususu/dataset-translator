@@ -11,7 +11,9 @@ $ transdata --engine [ENGINE] {ENGINE OPTIONS} [HF DATASET PATH] --jq [TARGET to
 ## RoadMap
 
 - [x] `2024-07-24` start 
-- [ ] support google translate
+- [x] `2024-07-25` support DeepL API (free)
+- [ ] support DeepL API (pro)
+- [ ] implement CLI
 - [ ] replace datasets
-- [ ] support DeepL API
+- [ ] support google translate
 - [ ] support OpenAI REST API
