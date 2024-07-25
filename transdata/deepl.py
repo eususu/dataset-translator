@@ -81,13 +81,22 @@ class DeepL:
     }
 
     #response = self._call_deepl_dummy(req)
-    response = self._call_deepl(req)
+    if len(source_messages) > 0:
+      response = self._call_deepl(req)
+    else:
+      response = []
+
+    # handle response is None
+    # like response={'message':'Quota Excedded'}
 
     translated = []
     input_length = 0
     output_length = 0
     for index, translation in enumerate(response):
       input_length += len(source_messages[index])
+      if not 'text' in translation:
+        ColorPrint.print_war('text field is not exist')
+        print(translation)
       translation_text = translation['text']
       output_length += len(translation_text)
       translated.append(translation_text)

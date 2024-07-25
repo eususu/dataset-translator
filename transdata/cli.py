@@ -25,6 +25,7 @@ def test():
     extractDict=extractDict,
     mergeDict=mergeDict,
     split='dev',
+    max_iterations=500,
     test_mode=False)
   translator.translate()
 
