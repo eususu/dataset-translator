@@ -1,16 +1,16 @@
 from typing import Callable, List
+from transdata._llm import LLM
 from transdata.deepl import DeepL, Lang
 from transdata.color_print import ColorPrint
 from transdata.data_loader import DataLoader
 
-import jq
 import json
-
 
 class Translator:
   data_loader=None
   test_mode=False
   deepl:DeepL
+  llm:LLM
   extractDict:Callable[[dict],List[str]]=None
   mergeDict:Callable[[dict, List[str]], None]=None
   output_path:str
@@ -30,6 +30,7 @@ class Translator:
 
     self.data_loader = DataLoader(path)
     self.deepl = DeepL(Lang.EN, Lang.KO)
+    self.llm = LLM()
 
     self.output_path = output_path
     self.extractDict = extractDict
@@ -43,7 +44,16 @@ class Translator:
 
     translated = []
     if not self.test_mode:
-      translated = self.deepl.translate(messages)
+      #translated = self.deepl.translate(messages)
+      translated = self.llm.translate(messages)
+
+      input_length = 0
+      output_length = 0
+      for index, m in enumerate(messages):
+        input_length += len(m)
+        output_length += len(translated[index])
+      
+      ColorPrint.print_pass(f"ENGINE - translated(from {input_length} chars to {output_length} chars)")
     else:
       for message in messages:
         translated.append(f'### TRANSLATED DATA #{message} ###')
@@ -59,7 +69,6 @@ class Translator:
         continue
         
       ColorPrint.print_pass(f'Dataset: {split}, len: {len(dataset)}')
-      output_lines = []
       output_name = f'{split}-{self.output_path}'
       begin_index = 0
       write_mode = "new"
@@ -77,14 +86,18 @@ class Translator:
           continue
 
         self._single_translate(item)
-        output_lines.append(json.dumps(item, ensure_ascii=False))
+        output_line = json.dumps(item, ensure_ascii=False)
       
-      if self.test_mode:
-        ColorPrint.print_warn('In test_mode, does not append output.')
-        continue
+        if self.test_mode:
+          ColorPrint.print_warn('In test_mode, does not append output.')
+          continue
 
-      with open(output_name, 'a') as fp:
-        fp.writelines(line + '\n' for line in output_lines)
+        with open(output_name, 'a') as fp:
+          """
+          번역 속도가 매우 빠르다면, fd를 열어두고 쓰면 되는데, 거의 초단위로 번역되니까, 항상 쓰는게 나을듯..
+          """
+          fp.write('\n')
+          fp.write(output_line)
 
       
     """

@@ -90,23 +90,17 @@ class DeepL:
     # like response={'message':'Quota Excedded'}
 
     translated = []
-    input_length = 0
-    output_length = 0
     for index, translation in enumerate(response):
-      input_length += len(source_messages[index])
       if not 'text' in translation:
         ColorPrint.print_war('text field is not exist')
         print(translation)
       translation_text = translation['text']
-      output_length += len(translation_text)
       translated.append(translation_text)
 
       self.cache[source_messages[index]] = translation_text # append cache
 
     for cache_index in cached_index:
       translated.insert(cache_index, self.cache[messages[cache_index]])
-
-    ColorPrint.print_pass(f"DEEPL - translated(from {input_length} chars to {output_length} chars)")
 
     return translated
       
