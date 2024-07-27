@@ -12,8 +12,9 @@ $ transdata --engine [ENGINE] {ENGINE OPTIONS} [HF DATASET PATH] --jq [TARGET to
 
 - [x] `2024-07-24` start 
 - [x] `2024-07-25` support DeepL API (free)
+- [x] `2024-07-28` support LLM translate(use my lite-llm-client)
+- [ ] add interface for translate engine(deepl, llm, etc)
 - [ ] support DeepL API (pro)
+- [ ] support Google Translate
 - [ ] implement CLI
 - [ ] replace datasets
-- [ ] support google translate
-- [ ] support OpenAI REST API
