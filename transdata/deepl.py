@@ -4,19 +4,16 @@ import os
 from typing import List
 import requests
 
+from transdata.interfaces import Lang
 from transdata.color_print import ColorPrint
 
 
 load_dotenv()
 
 
-class Lang(Enum):
-  EN="en"
-  KO="ko"
-
 class DeepL:
-  sourceLang:Lang=Lang.EN
-  targetLang:Lang=Lang.KO
+  sourceLang:Lang
+  targetLang:Lang
 
   cache:dict=None
 

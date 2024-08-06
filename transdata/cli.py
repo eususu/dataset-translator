@@ -1,6 +1,11 @@
 
+import logging
 from typing import List
+
+from .interfaces import LLMTranslatorOptions, Lang
 from .translator import Translator
+
+logging.basicConfig(level=5)
 
 
 def test():
@@ -24,6 +29,7 @@ def test():
     output_path='out.jsonl',
     extractDict=extractDict,
     mergeDict=mergeDict,
+    translator_options=LLMTranslatorOptions(from_lang=Lang.EN, to_lang=Lang.KO, llm_type='openai'),
     split='dev',
     max_iterations=500,
     test_mode=False)

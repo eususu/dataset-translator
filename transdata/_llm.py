@@ -3,17 +3,18 @@ from typing import List
 from lite_llm_client import LiteLLMClient, LLMMessage, LLMMessageRole, InferenceOptions, OpenAIConfig
 import json
 
+from transdata.interfaces import Lang, TranslateEngine
 from transdata.color_print import ColorPrint
 
 
-class LLM:
+class LLM(TranslateEngine):
   llc:LiteLLMClient=None
   from_lang:str|None
   to_lang:str
 
-  def __init__(self):
-    self.from_lang = None
-    self.to_lang = "korean"
+  def __init__(self, from_lang:Lang, to_lang:Lang):
+    self.from_lang = from_lang.full
+    self.to_lang = to_lang.full
     self.llc = LiteLLMClient(OpenAIConfig())
 
   def translate(self, messages:List[str]):
@@ -21,13 +22,15 @@ class LLM:
     json_messages = json.dumps(messages, ensure_ascii=False)
     _messages = [
       LLMMessage(role=LLMMessageRole.SYSTEM, content="you are professional language translator."),
-      LLMMessage(role=LLMMessageRole.USER, content=f"""translate below json messages to {self.to_lang}
-example:
+      LLMMessage(role=LLMMessageRole.USER, content=f"""translate given json messages's {self.from_lang} texts to {self.to_lang}.
+follow below json output format.
 [
   "translated message1",
   "translated message2"
-]"""),
-      LLMMessage(role=LLMMessageRole.USER, content=f"{json_messages}"),
+]
+
+"""),
+      LLMMessage(role=LLMMessageRole.USER, content=f"json message is {json_messages}"),
     ]
     
     answer = self.llc.chat_completions(messages=_messages, options=InferenceOptions(temperature=0.0))

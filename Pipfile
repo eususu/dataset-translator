@@ -8,7 +8,7 @@ datasets = "*"
 jq = "*"
 python-dotenv = "*"
 pydantic = "*"
-lite-llm-client = {git = "git+https://github.com/eususu/lite-llm-client"}
+lite-llm-client = "0.1.0"
 
 [dev-packages]
 

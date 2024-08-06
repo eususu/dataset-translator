@@ -1,18 +1,22 @@
+import logging
 from typing import Callable, List
-from transdata._llm import LLM
-from transdata.deepl import DeepL, Lang
-from transdata.color_print import ColorPrint
-from transdata.data_loader import DataLoader
+
+from .interfaces import DeepLTranslatorOptions, LLMTranslatorOptions, TranslateEngine, TranslatorOptions
+from ._llm import LLM
+from .deepl import DeepL, Lang
+from .color_print import ColorPrint
+from .data_loader import DataLoader
 
 import json
+
 
 class Translator:
   data_loader=None
   test_mode=False
-  deepl:DeepL
-  llm:LLM
+  engine:TranslateEngine
   extractDict:Callable[[dict],List[str]]=None
   mergeDict:Callable[[dict, List[str]], None]=None
+  translator_options:TranslatorOptions
   output_path:str
   split:str
   max_iterations:int
@@ -23,18 +27,25 @@ class Translator:
     output_path:str,
     extractDict:Callable[[dict], List[str]],
     mergeDict:Callable[[dict, List[str]], None],
+    translator_options:TranslatorOptions,
     split:str=None,
     max_iterations:int=10,
-    test_mode=False
+    test_mode=False,
     ):
 
     self.data_loader = DataLoader(path)
-    self.deepl = DeepL(Lang.EN, Lang.KO)
-    self.llm = LLM()
+
+    if isinstance(translator_options, LLMTranslatorOptions):
+      self.engine = LLM(translator_options.from_lang, translator_options.to_lang)
+    elif isinstance(translator_options, DeepLTranslatorOptions):
+      self.deepl = DeepL(Lang.EN, Lang.KO)
+    else:
+      raise NotImplementedError(f'unsupported options:{translator_options}')
 
     self.output_path = output_path
     self.extractDict = extractDict
     self.mergeDict = mergeDict
+    self.translator_options = translator_options
     self.split = split
     self.max_iterations = max_iterations
     self.test_mode = test_mode
@@ -44,8 +55,12 @@ class Translator:
 
     translated = []
     if not self.test_mode:
-      #translated = self.deepl.translate(messages)
-      translated = self.llm.translate(messages)
+      translated = self.engine.translate(messages)
+      if len(messages) != len(translated):
+        ColorPrint.print_fail(f"messages: {len(messages)}")
+        logging.debug(messages)
+        ColorPrint.print_fail(f"translated: {len(translated)}")
+        logging.debug(translated)
 
       input_length = 0
       output_length = 0
