@@ -4,7 +4,7 @@ import os
 from typing import List
 import requests
 
-from transdata.interfaces import Lang
+from transdata.interfaces import DeepLTranslatorOptions, Lang
 from transdata.color_print import ColorPrint
 
 
@@ -12,15 +12,12 @@ load_dotenv()
 
 
 class DeepL:
-  sourceLang:Lang
-  targetLang:Lang
+  translator_options:DeepLTranslatorOptions
 
   cache:dict=None
 
-  def __init__(self, sourceLang:Lang, targetLang:Lang):
-    self.sourceLang = sourceLang
-    self.targetLang = targetLang
-
+  def __init__(self, translator_options:DeepLTranslatorOptions):
+    self.translator_options = translator_options
     self.cache = {} # not implemented
 
   def print_cache(self):
@@ -73,8 +70,8 @@ class DeepL:
 
     req = {
       'text': source_messages,
-      'source_lang': self.sourceLang.value,
-      'target_lang': self.targetLang.value,
+      'source_lang': self.translator_options.from_lang.value,
+      'target_lang': self.translator_options.to_lang.value,
     }
 
     #response = self._call_deepl_dummy(req)

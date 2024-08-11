@@ -35,12 +35,14 @@ class Translator:
 
     self.data_loader = DataLoader(path)
 
+    target_class = None
     if isinstance(translator_options, LLMTranslatorOptions):
-      self.engine = LLM(translator_options.from_lang, translator_options.to_lang)
+      target_class = LLM
     elif isinstance(translator_options, DeepLTranslatorOptions):
-      self.deepl = DeepL(Lang.EN, Lang.KO)
+      target_class = DeepL
     else:
       raise NotImplementedError(f'unsupported options:{translator_options}')
+    self.engine = target_class(translator_options=translator_options)
 
     self.output_path = output_path
     self.extractDict = extractDict

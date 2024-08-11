@@ -6,6 +6,8 @@ from .interfaces import LLMTranslatorOptions, Lang
 from .translator import Translator
 
 logging.basicConfig(level=5)
+logging.getLogger("filelock").setLevel(logging.WARNING)
+logging.getLogger("urllib3").setLevel(logging.WARNING)
 
 
 def test():
@@ -29,7 +31,7 @@ def test():
     output_path='out.jsonl',
     extractDict=extractDict,
     mergeDict=mergeDict,
-    translator_options=LLMTranslatorOptions(from_lang=Lang.EN, to_lang=Lang.KO, llm_type='openai'),
+    translator_options=LLMTranslatorOptions(from_lang=Lang.EN, to_lang=Lang.KO, llm_type='anthropic'),
     split='dev',
     max_iterations=500,
     test_mode=False)
