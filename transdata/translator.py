@@ -53,7 +53,17 @@ class Translator:
     self.test_mode = test_mode
 
   def _single_translate(self, item:dict)->None:
-    messages = self.extractDict(item)
+    messages:List[str] = []
+    logging.debug(f'extraction target: {item}')
+    try:
+      messages = self.extractDict(item)
+    except Exception as e:
+      logging.error('extract dict failed', e)
+      ColorPrint.print_warn("failed source data")
+      logging.info(item)
+      raise e
+
+    logging.debug(f'extraction result: {messages}')
 
     translated = []
     if not self.test_mode:

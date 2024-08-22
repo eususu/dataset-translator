@@ -27,11 +27,17 @@ class DeepL:
     ColorPrint.print_bold(f']')
 
   def _call_deepl(self, req:dict)->List[str]:
-    url="https://api-free.deepl.com/v2/translate"
+    api_key = os.environ["DEEPL_AUTH_KEY"]
+
+    if api_key.endswith(':fx'):
+      url="https://api-free.deepl.com/v2/translate"
+    else:
+      url="https://api.deepl.com/v2/translate"
+    ColorPrint.print_bold(url)
     response = requests.api.post(url,
       headers={
         'Content-Type':'application/json',
-        'Authorization': f'DeepL-Auth-Key {os.environ["DEEPL_AUTH_KEY"]}',
+        'Authorization': f'DeepL-Auth-Key {api_key}',
         },
       json=req)
     status_code = response.status_code
@@ -70,9 +76,11 @@ class DeepL:
 
     req = {
       'text': source_messages,
-      'source_lang': self.translator_options.from_lang.value,
-      'target_lang': self.translator_options.to_lang.value,
+      'source_lang': self.translator_options.from_lang.short.upper(),
+      'target_lang': self.translator_options.to_lang.short.upper(),
     }
+
+    print(req)
 
     #response = self._call_deepl_dummy(req)
     if len(source_messages) > 0:
